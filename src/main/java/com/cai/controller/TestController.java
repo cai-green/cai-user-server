@@ -18,4 +18,9 @@ public class TestController {
     public String test() {
         return "你好";
     }
+
+    @GetMapping("/one")
+    public String one() {
+        return "第一次尝试actions，希望一次成功";
+    }
 }

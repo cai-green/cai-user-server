@@ -1,0 +1,76 @@
+name: 项目部署
+
+on:
+  # 当向分支进行git push时触发该工作流
+  push:
+    branches:
+      - "main"
+  # 当向master分支合并分支时触发该工作流
+  pull_request:
+    branches:
+      - "main"
+      
+# 环境变量
+env:
+  IMAGE_NAME: cai-user
+
+# 工作流具体执行的任务
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '1.8'
+          distribution: 'temurin'
+          
+      - name: Build with Maven
+        run: |
+          mvn package —U -Dmaven.test.skip=true -Dsource.skip
+          
+      - name: Move JAR to .github/workflows
+        run: |
+          mkdir -p .github/workflows
+          mv target/*.jar .github/workflows/
+
+      - name: Log in to Aliyun Docker Registry
+        env:
+          ALIYUN_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          ALIYUN_DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          ALIYUN_DOCKER_URL: ${{ secrets.DOCKER_LOGIN_URL }}
+        run: |
+          echo "${ALIYUN_DOCKER_PASSWORD}" | docker login "${ALIYUN_DOCKER_URL}" --username "${ALIYUN_DOCKER_USERNAME}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -f ./Dockerfile -t $IMAGE_NAME .github/workflows/
+
+      - name: Tag Docker image
+        run: docker tag $IMAGE_NAME ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+
+      - name: Push Docker image to Aliyun registry
+        run: docker push ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+
+      - name: Set up SSH using username and password
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_USER: ${{ secrets.SERVER_USER_NAME }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+            # Stop and remove old container
+            sudo docker ps -q -f "name=$IMAGE_NAME" | xargs -r sudo docker stop
+            sudo docker ps -aq -f "name=$IMAGE_NAME" | xargs -r sudo docker rm
+
+            # Remove old Docker images
+            sudo docker image prune -a -f
+
+            # Pull the new Docker image
+            sudo docker pull ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+
+            # Run the new container
+            sudo docker run -d --name 容器名称--restart unless-stopped -p 9000:9000 ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+          EOF

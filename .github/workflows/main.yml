@@ -31,11 +31,6 @@ jobs:
       - name: Build with Maven
         run: |
           mvn package -U -Dcodegen.skip -Dmaven.test.skip=true
-          
-      - name: Move JAR to .github/workflows
-        run: |
-          mkdir -p .github/workflows
-          mv target/*.jar .github/workflows/
 
       - name: Log in to Aliyun Docker Registry
         env:
@@ -46,7 +41,7 @@ jobs:
           echo "${ALIYUN_DOCKER_PASSWORD}" | docker login "${ALIYUN_DOCKER_URL}" --username "${ALIYUN_DOCKER_USERNAME}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -f ./Dockerfile -t $IMAGE_NAME .github/workflows/
+        run: docker build -f ./Dockerfile -t $IMAGE_NAME ./target/*.jar
 
       - name: Tag Docker image
         run: docker tag $IMAGE_NAME ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
@@ -72,5 +67,5 @@ jobs:
             sudo docker pull ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
 
             # Run the new container
-            sudo docker run -d --name 容器名称--restart unless-stopped -p 9000:9000 ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+            sudo docker run -d --name $IMAGE_NAME --restart unless-stopped -p 9001:9001 ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
           EOF

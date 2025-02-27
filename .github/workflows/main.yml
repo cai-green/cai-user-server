@@ -45,7 +45,7 @@ jobs:
           pwd
           ls
           cd ./target
-          ll
+          ls
           cd ..
           docker build -f ./Dockerfile -t $IMAGE_NAME ./target/*.jar
 

@@ -4,11 +4,11 @@ on:
   # 当向分支进行git push时触发该工作流
   push:
     branches:
-      - "main"
+      - "master"
   # 当向master分支合并分支时触发该工作流
   pull_request:
     branches:
-      - "main"
+      - "master"
       
 # 环境变量
 env:

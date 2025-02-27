@@ -30,7 +30,7 @@ jobs:
           
       - name: Build with Maven
         run: |
-          mvn package —U -Dmaven.test.skip=true -Dsource.skip
+          mvn package -U -Dcodegen.skip -Dmaven.test.skip=true
           
       - name: Move JAR to .github/workflows
         run: |

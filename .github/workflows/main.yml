@@ -32,6 +32,10 @@ jobs:
         run: |
           mvn package -U -Dcodegen.skip -Dmaven.test.skip=true
 
+      - name: Copy JAR to .github/workflows
+        run: |
+          mkdir -p .github/workflows
+          cp target/*.jar .github/workflows/
       - name: Log in to Aliyun Docker Registry
         env:
           ALIYUN_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -42,12 +46,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          pwd
-          ls
-          cd ./target
-          ls
-          cd ..
-          docker build -f ./Dockerfile -t $IMAGE_NAME ./target/*.jar
+          docker build -f ./Dockerfile -t $IMAGE_NAME .github/workflows
 
       - name: Tag Docker image
         run: docker tag $IMAGE_NAME ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest

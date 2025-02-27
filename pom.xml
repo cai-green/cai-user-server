@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.cai</groupId>
-    <artifactId>cai-framwork</artifactId>
+    <artifactId>cai-user-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>cai-framwork</name>
-    <description>cai-framwork</description>
+    <name>cai-user-server</name>
+    <description>cai-user-server</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -39,6 +39,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
 

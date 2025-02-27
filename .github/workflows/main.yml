@@ -55,22 +55,25 @@ jobs:
         run: docker push ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
 
       - name: Set up SSH using username and password
-        env:
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-          SSH_USER: ${{ secrets.SERVER_USER_NAME }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-        run: |
-          sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
-            # Stop and remove old container
-            sudo docker ps -q -f "name=$IMAGE_NAME" | xargs -r sudo docker stop
-            sudo docker ps -aq -f "name=$IMAGE_NAME" | xargs -r sudo docker rm
+        uses: actions/checkout@v3
+        with:
+            command: |
+                sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SERVER_IP} << 'EOF'
+                  # Stop and remove old container
+                  sudo docker ps -q -f "name=$IMAGE_NAME" | xargs -r sudo docker stop
+                  sudo docker ps -aq -f "name=$IMAGE_NAME" | xargs -r sudo docker rm
 
-            # Remove old Docker images
-            sudo docker image prune -a -f
+                  # Remove old Docker images
+                  sudo docker image prune -a -f
 
-            # Pull the new Docker image
-            sudo docker pull ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+                  # Pull the new Docker image
+                  sudo docker pull ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
 
-            # Run the new container
-            sudo docker run -d --name $IMAGE_NAME --restart unless-stopped -p 9001:9001 ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
-          EOF
+                  # Run the new container
+                  sudo docker run -d --name $IMAGE_NAME --restart unless-stopped -p 9001:9001 ${{ secrets.DOCKER_IMAGE_URL }}$IMAGE_NAME:lastest
+                EOF
+            host: ${{ secrets.SERVER_IP }}
+            username: root
+            port: 22
+            privateKey: ${{ secrets.PRIVATE_KEY}}
+

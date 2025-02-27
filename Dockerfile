@@ -10,7 +10,7 @@ ENV EXTRA_JAVA_CONFIG ""
 # 工作目录，
 WORKDIR /app
 
-RUN ls
+CMD ls
 
 # 添加 jar
 ADD ./target/*.jar cai-user.jar
